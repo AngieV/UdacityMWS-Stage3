@@ -1,0 +1,14 @@
+# ignore dependencies
+node_modules/
+
+# ignore dist folder, as this will be built from src folder.
+dist/
+
+# ignore logs
+logs
+*.log
+npm-debug.log*
+
+# ignore temp files
+.tmp
+*.tmp
