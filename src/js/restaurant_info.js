@@ -1,5 +1,7 @@
 import DBHelper from './dbhelper';
 import './register';
+import favoriteButton from './favorite-button';
+import reviewForm from './review-form';
 
 let restaurant;
 var newMap;
@@ -93,6 +95,17 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
   if (restaurant.operating_hours) {
     fillRestaurantHoursHTML();
   }
+ 
+  // add favorite button 
+  const favButtonContainer = document.getElementById('fav-button-container');
+  const p = document.createElement('p');
+  if (restaurant.is_favorite){
+    p.innerHTML =  ` ${restaurant.name} is a favorite! `;
+  } 
+  p.appendChild(favoriteButton(restaurant));
+  favButtonContainer.append(p);
+  //favButtonContainer.appendChild(p);
+
   // fill reviews
   DBHelper.fetchReviewsByRestaurantId(restaurant.id)
     .then(fillReviewsHTML);
@@ -133,8 +146,19 @@ const fillReviewsHTML = (reviews = self.restaurant.reviews) => {
     const noReviews = document.createElement('p');
     noReviews.innerHTML = 'No reviews yet!';
     container.appendChild(noReviews);
-    return;
+  } else {
+    const ul = document.getElementById('reviews-list');
+    reviews.forEach(review => {
+      ul.appendChild(createReviewHTML(review));
+    });
+    container.appendChild(ul);
   }
+
+  const h4 = document.createElement('h4');
+  h4.innerHTML = "Leave a Review";
+  container.appendChild(h4);
+  const id = getParameterByName('id');
+  container.appendChild(reviewForm(id));
 
   const ul = document.getElementById('reviews-list');
   reviews.forEach(review => {

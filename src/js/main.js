@@ -1,5 +1,6 @@
 import DBHelper from './dbhelper';
 import './register';
+import favoriteButton from './favorite-button';
 
 let restaurants,
   neighborhoods,
@@ -165,9 +166,13 @@ const createRestaurantHTML = (restaurant) => {
   li.append(image);
   
 
+  const favButton = favoriteButton(restaurant);
+  li.append(favButton);
+
   const name = document.createElement('h2');
   name.innerHTML = restaurant.name;
   li.append(name);
+
 
   const neighborhood = document.createElement('p');
   neighborhood.innerHTML = restaurant.neighborhood;
