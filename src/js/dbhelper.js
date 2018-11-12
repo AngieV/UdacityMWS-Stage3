@@ -71,7 +71,7 @@ export default class DBHelper {
   /**
    * Fetch a restaurant by its ID.
    */
-  // lines 78-94 by Alexandro Perez
+  // next 19 lines by Alexandro Perez
   static fetchRestaurantById(id, callback) {
     fetch(`${DBHelper.API_URL}/restaurants/${id}`)
       .then(response => {
