@@ -5,11 +5,9 @@ let cacheID = "mws_rrdb" + "-v 1.2";
 let urlsToCache = [ '/',
                    '/index.html',
                    '/restaurant.html',
-                   '/review.html',
                    '/css/styles.css',
                    '/js/main.js',
                    '/js/restaurant_info.js',
-                   //'/js/review.js',
                    '/manifest.json'
                  ];
 
