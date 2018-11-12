@@ -70,11 +70,21 @@ h1 {
 }
 
 h2 {
-  color: #f18200;
-  font-size: 1.2em;
-  font-weight: 300;
+	color: #f18200;
+	font-size: 1.3em;
+	font-weight: 300;
 	text-transform: uppercase;
 	margin: 10px 0 5px 0;
+}
+
+h3 {
+    font-size: 1.17em;
+    font-weight: 600;
+}
+
+h4 {
+    font-size: 1em;
+    font-weight: 600;
 }
 
 article,
@@ -237,6 +247,31 @@ nav {
   text-transform: uppercase;
 }
 
+/* ====================== Favorite Details ====================== */
+
+#fav-button-container {
+	font-size: 1em;
+  	margin: 15px 0 0;
+  	padding: 8px 30px 0 0;
+  	display: inline-block;
+}
+
+button.fav {
+	color: #000; /* black */
+	background-color: #C0C0C0; /* silver */
+}
+
+button.fav:hover,
+button.fav:focus {
+	color: #ffcc99; /* pink */
+	background-color: #fff; /* white */
+}
+
+button.fav[aria-pressed=true] {
+	color: #fff; /* white */
+	background-color: #ff0000; /* red */
+}
+
 /* ====================== Restaurant Details ====================== */
 
 #restaurant-reviews{
@@ -263,9 +298,9 @@ nav {
 }
 
 #restaurant-address {
-  font-size: 0.9em;
+	font-size: 0.9em;
 	font-weight: 500;
-  padding: 0 0 0 20px;
+	padding: 0 0 0 20px;
 }
 
 #restaurant-hours td.day {
@@ -281,29 +316,42 @@ nav {
 }
 
 /* ====================== Reviews  ====================== */
+#review-form {
+	width: 90%;
+	padding: 20px;
+	background-color: #fff;
+	border: 2px solid #f58500;
+ 	display: block;
+	margin: 0 0 5%;
+	max-width: 100%;
+}
+textarea#comments{
+	width: 90%;
+	margin: auto;
+}
 
 #reviews-container h2 {
 	text-transform: none;
 }
 
-
 #reviews-list {
-  margin: 0;
-  padding: 0;
+	margin: 0;
+	padding: 0;
 }
 
 #reviews-container {
-  width: 90%;
+	width: 90%;
 	padding: 20px;
 }
 
+#review-form input#name,
 #reviews-list .name {
-  color: #fff;
-	background-color: #252831;
-  font-size: 1.1em;
-  font-weight: 400;
-	padding: 5px 0 10px 10px;
-	margin: 0;
+	color: #fff;
+ 	background-color: #252831;
+ 	font-size: 1.1em;
+ 	font-weight: 400;
+ 	padding: 5px 0 10px 10px;
+ 	margin: 0;
 }
 
 #reviews-list .date {
@@ -313,6 +361,18 @@ nav {
 	padding: 0 5px;
 }
 
+
+select#rating.rating {
+	color: #fff;
+	background-color: #f58500;
+	font-size: 0.8em;
+	font-weight: 300;
+	text-transform: uppercase;
+	width: 10%;
+	padding: 4px 0 4px 10px;
+}
+
+#review-form label,
 #reviews-list .rating {
 	color: #fff;
 	background-color: #f58500;
@@ -324,12 +384,12 @@ nav {
 }
 
 #reviews-list li {
-  background-color: #fff;
-  border: 2px solid #252831;
+  	background-color: #fff;
+  	border: 2px solid #252831;
 	list-style-type: none;
-  display: block;
-  margin: 0 0 5%;
-  max-width: 100%;
+  	display: block;
+  	margin: 0 0 5%;
+  	max-width: 100%;
 }
 
 #reviews-list li p {
