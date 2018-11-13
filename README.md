@@ -17,4 +17,7 @@ Add an empty folder 'dist' to the project folder
 
 In the terminal run 'gulp sync' to have BrowserSync serve the app on localhost:8000 or other available port.
 
-With your server running, visit the site: http://localhost:8000 (or other available port) and explore the app.
+With your server running, visit the site: http://localhost:8000 (or other available port*) and explore the app.
+
+
+*Runs on 8001 on my environment
