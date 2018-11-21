@@ -28,7 +28,7 @@ export default class DBHelper {
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    fetch(`${DBHelper.API_URL}/restaurants`)
+    fetch(`${DBHelper.DATABASE_URL}`)
     .then(response => {
       response.json()
     .then(restaurants => {
@@ -58,7 +58,7 @@ export default class DBHelper {
    * Get a restaurant, by its id, or all stored restaurants in idb using promises.
    * If no argument is passed, all restaurants will returned.
    */
-   static getRestaurants(id = undefined) {
+/*   static getRestaurants(id = undefined) {
     return this.db.then(db => {
       const store = db.transaction('restaurants').objectStore('restaurants');
       if (id){
@@ -66,13 +66,41 @@ export default class DBHelper {
       }
       return store.getAll();
     });
-  }
+  }*/
 
   /**
    * Fetch a restaurant by its ID.
    */
-  // next 19 lines by Alexandro Perez
   static fetchRestaurantById(id, callback) {
+    DBHelper.fetchRestaurants((error, restaurants) => {
+      if (error) {
+        callback(error, null);
+      } else {
+        const restaurant = restaurants.find(r => r.id == id);
+        if (restaurant) { // Got the restaurant
+          callback(null, restaurant);
+        } else { // Restaurant does not exist in the database
+          callback('Restaurant does not exist', null);
+        }
+      }
+    });
+  }
+    //}
+    /*fetch(`${DBHelper.DATABASE_URL}/${id}`
+      .then(response => {
+        response.json()
+      .then(fetchedRestaurant => { 
+        callback(null, fetchedRestaurant);
+    }).catch (networkError => {
+      if(!response.ok)
+        callback(networkError, null);
+      else //Restaurant not in database
+        callback('Restaurant not in database.', null);
+      });
+    })
+  }
+  // lines following by Alexandro Perez
+  /*static fetchRestaurantById(id, callback) {
     fetch(`${DBHelper.API_URL}/restaurants/${id}`)
       .then(response => {
       if (!response.ok) 
@@ -91,27 +119,16 @@ export default class DBHelper {
         return callback(null, idbRestaurant);
       });
     });
-  }
+  }*/
 
-  /**
-   * Fetch a restaurant's reviews by its ID.
-   */
-  static fetchReviewsByRestaurantId(restaurant_id) {
-    return fetch(`${DBHelper.API_URL}/reviews/?restaurant_id=${restaurant_id}`).then(response => {
-      if (!response.ok) return Promise.reject("Reviews couldn't be fetched from network");
-      return response.json();
-    }).then(fetchedReviews => {
-      // if reviews could be fetched from network:
-      // TODO: store reviews on idb
-      return fetchedReviews;
-    }).catch(networkError => {
-      // if reviews couldn't be fetched from network:
-      // TODO: try to get reviews from idb
-      console.log(`${networkError}`);
-      return null; // return null to handle error, as though there are no reviews.
-    });
+  static fetchReviewsByRestaurantId(id, callback){
+    fetch(`${DBHelper.API_URL}/reviews/?restaurant_id=${id}`)
+    .then(response => response.json())
+    .then(data => 
+      callback(null, data))
+    .catch(error =>
+      callback(error, null));
   }
-
 
   /**
    * Fetch restaurants by a cuisine type with proper error handling.
@@ -154,7 +171,7 @@ export default class DBHelper {
       if (error) {
         callback(error, null);
       } else {
-        let results = restaurants
+        let results = restaurants;
         if (cuisine != 'all') { // filter by cuisine
           results = results.filter(r => r.cuisine_type == cuisine);
         }
@@ -230,6 +247,16 @@ export default class DBHelper {
       })
       marker.addTo(map);
     return marker;
+  }
+
+  static updateFavorite(restaurantID, fav, callback){
+    //if offline update idb 
+      if(!response.ok){
+        //dbPromise.open
+        console.log (error);
+        callback(error, null)
+      }
+      //add to update API queue
   }
 
 }

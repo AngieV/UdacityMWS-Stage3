@@ -30,26 +30,17 @@ const dbPromise = idb.open("rest_reviews_db", 2, upgradeDb => {
   switch(upgradeDb.oldVersion) {
     // Note: don't use 'break' in this switch statement,
     // the fall-through behaviour is what we want.
-    case 0:
-        // executes when the database is first created
-        //createObectstore (method) returns a promise for the database,
-        //containing objectStore 'restaurants' which uses id as its key
+    case 0: 
+      { // executes when the database is first created
           upgradeDb.createObjectStore('restaurants', {keyPath: 'id'});
+      }
     case 1: 
       {
-        //createObectstore (method) returns a promise for the database,
-        //containing objectStore 'reviews' which uses id as its key
-        //const storeReviews = 
-        upgradeDb.createObjectStore('reviews', {keyPath: 'restaurant_id'}); 
-        storeReviews.createIndex("restaurant_id", "restaurant_id");
+      //createObectstore (method) returns a promise for the database,
+      //containing objectStore 'restaurants' which uses id as its key
+      const storeReviews = upgradeDb.createObjectStore('reviews', {keyPath: 'id'}); 
+      storeReviews.createIndex("restaurant_id", "restaurant_id");
       }
-    /*case 2:
-      {
-        upgradeDB.createObjectStore("pending", {
-        keyPath: "id",
-        autoIncrement: true
-      });
-      }*/  
     } //end switch
   })
 
@@ -58,12 +49,12 @@ const dbPromise = idb.open("rest_reviews_db", 2, upgradeDb => {
 self.addEventListener('fetch', event => {
   let requestCache = event.request;
   let cacheUrl = new URL(event.request.url);
-  if (event.request.url.indexOf("restaurant.html") >= 0) {
+  if (event.request.url.indexOf("restaurant.html") >= 0) {  
     const RestaurantCacheURL = "restaurant.html";
     requestCache = new Request(RestaurantCacheURL);
   }
 // Requests to the API are handled separately from others
-// 10 lines by ~ Doug Brown
+// lines 39-47 ~ Doug Brown
   const checkURL = new URL(event.request.url);
   if(checkURL.port == 1337) { // === "1337"  ??
       const parts = checkURL.pathname.split("/");
@@ -90,66 +81,20 @@ self.addEventListener('fetch', event => {
           return json
         });
     }
-
-    // Split requests for handling restaurants & reviews
-    if (event.request.url.indexOf("reviews") > -1) {
-      handleReviewsEvent(event, id);
-    } else {
-      handleRestaurantEvent(event, id);
-    }
-  }
-
-  const handleReviewsEvent = (event, id) => {
-  event.respondWith(dbPromise.then(db => {
-    console.log("sw got dbPromise-reviews");
-      //create a transaction and pass objectStore(s)
-      let tx = db.transaction("reviews"); //transaction is a property
-      // call objectStore and pass the name of the objectStore
-      let store = tx.objectStore("reviews");
-      return store.index("restaurant_id").getAll(id);
-  }).then(data => {
-    //next line ~ by Doug Brown ~
-    return ( (data.length && data) || fetch(event.request) )
-      .then(fetchResponse => fetchResponse.json())
-      .then(json => {
-        console.log("sw got reviews json");
-        return dbPromise.then(idb => {
-          const itx = idb.transaction("reviews", "readwrite");
-          const store = itx.objectStore("reviews");
-          json.forEach(review => {
-            store.put({id: review.id, "restaurant_id": review["restaurant_id"], data: review});
-          })
-          console.log("sw put reviews in db: ", json);
-          return data;
-        })
-      })
-  }).then(finalResponse => {
-    if (finalResponse[0].data) {
-      // Need to transform the data to the proper format
-      const mapResponse = finalResponse.map(review => review.data);
-      return new Response(JSON.stringify(mapResponse));
-    }
-    return new Response(JSON.stringify(finalResponse));
-  }).catch(error => {
-    return new Response("Error fetching data", {status: 500})
-  }))
-}
-
-  const handleRestaurantEvent = (event, id) => {
     // Check IndexedDB for JSON, return if available; 
     event.respondWith(dbPromise.then(db => {
-      console.log("sw got dbPromise-restaurants");
+      console.log("sw got dbPromise");
       //create a transaction and pass objectStore(s)
       let tx = db.transaction("restaurants"); //transaction is a property
       // call objectStore and pass the name of the objectStore
       let store = tx.objectStore("restaurants");
-      return store.get(id); //('id')?
+      return store.get('id'); // D Brown: return db.transaction("restaurants").objectStore("restaurants").get("id");
     }).then(data => {
-      //next 3 lines ~ by Doug Brown ~
+      //lines 73-75  ~D Brown
         return ( (data && data.data) || fetch(event.request)
           .then(fetchResponse => fetchResponse.json())
           .then(json => {
-            console.log("sw got restaurants json");
+            console.log("sw got json");
             //save the JSON data to the IDB
             return dbPromise.then(db => {
               let tx = db.transaction("restaurants", "readwrite");
@@ -163,7 +108,6 @@ self.addEventListener('fetch', event => {
           }) // .then(json => {
         ); // return ( (data && ...
       }) //fulfills then(data => {... })
-    // next 6 lines by Doug Brown
       .then(finalresponse => {
         return new Response (JSON.stringify(finalResponse));
       })

@@ -29,7 +29,7 @@ const fetchNeighborhoods = () => {
       fillNeighborhoodsHTML();
     }
   });
-}
+};
 
 /**
  * Set neighborhoods HTML.
@@ -56,7 +56,7 @@ const fetchCuisines = () => {
       fillCuisinesHTML();
     }
   });
-}
+};
 
 /**
  * Set cuisines HTML.
@@ -113,8 +113,8 @@ const updateRestaurants = () => {
       resetRestaurants(restaurants);
       fillRestaurantsHTML();
     }
-  })
-}
+  });
+};
 
 /**
  * Clear current restaurants, their HTML and remove their map markers.
@@ -126,9 +126,9 @@ const resetRestaurants = (restaurants) => {
   ul.innerHTML = '';
 
   // Remove all map markers
-  if (self.markers) {
+  if (self.markers)
     self.markers.forEach(marker => marker.remove());
-  }
+  
   self.markers = [];
   self.restaurants = restaurants;
 }
@@ -153,7 +153,7 @@ const createRestaurantHTML = (restaurant) => {
   const image = document.createElement('img');
   image.className = 'restaurant-img';
   const imageUrl = DBHelper.imageUrlForRestaurant(restaurant);
-  image.src = imageUrl //.slice(0,-4);
+  image.src = imageUrl; //.slice(0,-4);
   if (imageUrl == "/img/na.png"){
     image.src = "/img/na.png";
     image.alt =  `No photo available`;
@@ -164,15 +164,33 @@ const createRestaurantHTML = (restaurant) => {
     image.sizes = `90%vw, 270px`;
   }
   li.append(image);
-  
 
-  const favButton = favoriteButton(restaurant);
-  li.append(favButton);
+  //create div and add button
+
+  const favoriteDiv = document.createElement('div');
+  favoriteDiv.setAttribute('class', 'fav');
+  const favorite = favoriteButton(restaurant);
+  favoriteDiv.appendChild(favorite);
+  const isfaved = document.createElement('p');
+  isfaved.innerHTML = favorite.title;
+  favoriteDiv.appendChild(isfaved);
+  li.append(favoriteDiv);
+
+  //set text for faved, set button style
+/*  function setFavMessage(restaurant) {
+    let faved;
+    if (restaurant.is_favorite){
+      faved = ` ${restaurant.name} is a favorite!`;
+      favorite.setAttribute('aria-pressed', 'true');
+    } else {
+      faved =` Click to Favorite`;
+    }
+    return faved;
+  }*/
 
   const name = document.createElement('h2');
   name.innerHTML = restaurant.name;
   li.append(name);
-
 
   const neighborhood = document.createElement('p');
   neighborhood.innerHTML = restaurant.neighborhood;

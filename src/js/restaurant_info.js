@@ -3,6 +3,7 @@ import './register';
 import favoriteButton from './favorite-button';
 import reviewForm from './review-form';
 
+
 let restaurant;
 var newMap;
 
@@ -44,13 +45,14 @@ const initMap = () => {
  * Get current restaurant from page URL.
  */
 const fetchRestaurantFromURL = (callback) => {
-/*  if (self.restaurant) { // restaurant already fetched!
+  if (self.restaurant) { // restaurant already fetched!
     callback(null, self.restaurant)
     return;
-  }*/
+  }
   const id = getParameterByName('id');
-  if (!id) { // no id found in URL
-    error = 'No restaurant id in URL'
+  if (!id) {
+  // no id found in URL
+    const error = 'No restaurant id in URL';
     callback(error, null);
   } else {
     DBHelper.fetchRestaurantById(id, (error, restaurant) => {
@@ -63,7 +65,7 @@ const fetchRestaurantFromURL = (callback) => {
       callback(null, restaurant)
     });
   }
-}
+};
 
 /**
  * Create restaurant HTML and add it to the webpage
@@ -95,20 +97,23 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
   if (restaurant.operating_hours) {
     fillRestaurantHoursHTML();
   }
- 
-  // add favorite button 
-  const favButtonContainer = document.getElementById('fav-button-container');
-  const p = document.createElement('p');
-  if (restaurant.is_favorite){
-    p.innerHTML =  ` ${restaurant.name} is a favorite! `;
-  } 
-  p.appendChild(favoriteButton(restaurant));
-  favButtonContainer.append(p);
-  //favButtonContainer.appendChild(p);
 
-  // fill reviews
-  DBHelper.fetchReviewsByRestaurantId(restaurant.id)
-    .then(fillReviewsHTML);
+  //create div and add button
+  const ReviewsDiv = document.getElementById('reviews-container');
+  const favoriteDiv = document.createElement('div');
+  favoriteDiv.setAttribute('class', 'fav');
+  const favorite = favoriteButton(restaurant);
+
+  favoriteDiv.appendChild(favorite);
+  const isfaved = document.createElement('p');
+  isfaved.innerHTML = favorite.title;
+  favoriteDiv.appendChild(isfaved);
+  ReviewsDiv.append(favoriteDiv);
+
+  // fill reviews for stage 2 server
+  // fillReviewsHTML();
+  // fill reviews for stage 3 server
+  DBHelper.fetchReviewsByRestaurantId(restaurant.id, fillReviewsHTML);
 }
 
 /**
@@ -136,23 +141,15 @@ const fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hour
 /**
  * Create all reviews HTML and add them to the webpage.
  */
-const fillReviewsHTML = (reviews = self.restaurant.reviews) => {
+const fillReviewsHTML = (error, reviews) => {
+  self.restaurant.reviews = reviews;
+  if(error){
+      console.log('Error retrieving reviews', error);
+    }
   const container = document.getElementById('reviews-container');
   const title = document.createElement('h2');
   title.innerHTML = 'Reviews';
   container.appendChild(title);
-
-  if (!reviews) {
-    const noReviews = document.createElement('p');
-    noReviews.innerHTML = 'No reviews yet!';
-    container.appendChild(noReviews);
-  } else {
-    const ul = document.getElementById('reviews-list');
-    reviews.forEach(review => {
-      ul.appendChild(createReviewHTML(review));
-    });
-    container.appendChild(ul);
-  }
 
   const h4 = document.createElement('h4');
   h4.innerHTML = "Leave a Review";
@@ -160,7 +157,15 @@ const fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   const id = getParameterByName('id');
   container.appendChild(reviewForm(id));
 
+  if (!reviews) {
+    const noReviews = document.createElement('p');
+    noReviews.innerHTML = 'No reviews yet!';
+    container.appendChild(noReviews);
+    return;
+  }
+
   const ul = document.getElementById('reviews-list');
+  reviews.reverse();
   reviews.forEach(review => {
     ul.appendChild(createReviewHTML(review));
   });
@@ -179,7 +184,7 @@ const createReviewHTML = (review) => {
 
   const date = document.createElement('p');
   //insert Date and convert timestamp into readable format
-  date.innerHTML = new Date(review.createdAt).toLocaleDateString();
+  date.innerHTML = new Date(review.createdAt).toLocaleDateString()
   date.setAttribute('class','date');
   li.appendChild(date);
 

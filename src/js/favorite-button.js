@@ -1,7 +1,18 @@
 import DBHelper from "./dbhelper";
 import './register';
 
-// ~ code by Alexandro Perez
+//set text for faved, set button style
+  function getTitle(restaurant) {
+    let title;
+    if (restaurant.is_favorite == 'true'){
+      title = ` ${restaurant.name} is a favorite!`;
+    } else {
+      title =` Click to Favorite`;
+    }
+    return title;
+  }
+
+// ~ following code by Alexandro Perez
 
 function handleClick() {
   const restaurantId = this.dataset.id;
@@ -11,11 +22,12 @@ function handleClick() {
 
   // TODO: use Background Sync to sync data with API server
   return fetch(url, PUT).then(response => {
-    if (!response.ok) return Promise.reject("We couldn't mark restaurant as favorite.");
+    if (!response.ok) 
+      return Promise.reject("We couldn't mark restaurant as favorite.");
     return response.json();
   }).then(updatedRestaurant => {
     // update restaurant on idb
-    dbPromise.putRestaurants(updatedRestaurant, true);
+    DBHelper.updateFavorite(updatedRestaurant, true);
     // change state of toggle button
     this.setAttribute('aria-pressed', !fav);
   });
@@ -28,7 +40,7 @@ export default function favoriteButton(restaurant) {
   button.dataset.id = restaurant.id; // store restaurant id in dataset for later
   button.setAttribute('aria-label', `Mark ${restaurant.name} as a favorite`);
   button.setAttribute('aria-pressed', restaurant.is_favorite);
+  button.title = getTitle(restaurant);
   button.onclick = handleClick;
-
   return button;
 }
