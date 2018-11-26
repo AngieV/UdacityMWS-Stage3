@@ -1,6 +1,7 @@
 import idb from "idb";
+import dbPromise from "./js/dbPromise";
 
-let cacheID = "mws_rrdb" + "-v 1.2";
+let cacheID = "mws_rrdb" + "-v 1.3";
 
 let urlsToCache = [ '/',
                    '/index.html',
@@ -11,7 +12,7 @@ let urlsToCache = [ '/',
                    '/manifest.json'
                  ];
 
-// ============ INSTALL SERVICEWORKER ===============
+// ================== INSTALL SERVICEWORKER =====================
 
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -24,36 +25,7 @@ self.addEventListener('install', event => {
   }));
 });
 
-// ================ OPEN DATABASE ===================
-
-const dbPromise = idb.open("rest_reviews_db", 2, upgradeDb => {
-  switch(upgradeDb.oldVersion) {
-    // Note: don't use 'break' in this switch statement,
-    // the fall-through behaviour is what we want.
-    case 0:
-        // executes when the database is first created
-        //createObectstore (method) returns a promise for the database,
-        //containing objectStore 'restaurants' which uses id as its key
-          upgradeDb.createObjectStore('restaurants', {keyPath: 'id'});
-    case 1: 
-      {
-        //createObectstore (method) returns a promise for the database,
-        //containing objectStore 'reviews' which uses id as its key
-        //const storeReviews = 
-        upgradeDb.createObjectStore('reviews', {keyPath: 'restaurant_id'}); 
-        storeReviews.createIndex("restaurant_id", "restaurant_id");
-      }
-    /*case 2:
-      {
-        upgradeDB.createObjectStore("pending", {
-        keyPath: "id",
-        autoIncrement: true
-      });
-      }*/  
-    } //end switch
-  })
-
-// ================ LISTEN FOR REQUEST ===================
+// ==================== LISTEN FOR REQUEST =======================
 
 self.addEventListener('fetch', event => {
   let requestCache = event.request;
@@ -62,8 +34,9 @@ self.addEventListener('fetch', event => {
     const RestaurantCacheURL = "restaurant.html";
     requestCache = new Request(RestaurantCacheURL);
   }
-// Requests to the API are handled separately from others
-// 10 lines by ~ Doug Brown
+    // ======= SEPARATE AJAX from CACHE REQUESTS ========  
+    // Requests to the API are handled separately from others
+    // 10 lines by ~ Doug Brown
   const checkURL = new URL(event.request.url);
   if(checkURL.port == 1337) { // === "1337"  ??
       const parts = checkURL.pathname.split("/");
@@ -76,12 +49,13 @@ self.addEventListener('fetch', event => {
         }
       }
       readDatabase_AJAX(event, id);
-    } else {  //Requests going to the API get handled separately
+    } else {
       handleRequest(event, requestCache);
     }
   });
 
-  function readDatabase_AJAX(event, id) {
+//=========== HANDLE AJAX RESTAUARANT & REVIEW REQUESTS ===========
+  const readDatabase_AJAX = (event, id) => {
     // Only use caching for GET events
     if (event.request.method !== "GET") {
       return fetch(event.request)
@@ -90,36 +64,35 @@ self.addEventListener('fetch', event => {
           return json
         });
     }
-
+    // === DIRECT AJAX RESTAUARANT & REVIEW REQUESTS ===
     // Split requests for handling restaurants & reviews
-    if (event.request.url.indexOf("reviews") > -1) {
+  //if(request.url.includes("reviews")
+    if(event.request.url.indexOf("reviews") > -1) {
       handleReviewsEvent(event, id);
     } else {
       handleRestaurantEvent(event, id);
     }
   }
 
-  const handleReviewsEvent = (event, id) => {
+// ===================== HANDLE REVIEWS =======================
+//code by Doug Brown
+const handleReviewsEvent = (event, id) => {
   event.respondWith(dbPromise.then(db => {
-    console.log("sw got dbPromise-reviews");
-      //create a transaction and pass objectStore(s)
-      let tx = db.transaction("reviews"); //transaction is a property
-      // call objectStore and pass the name of the objectStore
-      let store = tx.objectStore("reviews");
-      return store.index("restaurant_id").getAll(id);
+    return db
+      .transaction("reviews")
+      .objectStore("reviews")
+      .index("restaurant_id")
+      .getAll(id);
   }).then(data => {
-    //next line ~ by Doug Brown ~
-    return ( (data.length && data) || fetch(event.request) )
+    return (data.length && data) || fetch(event.request)
       .then(fetchResponse => fetchResponse.json())
-      .then(json => {
-        console.log("sw got reviews json");
+      .then(data => {
         return dbPromise.then(idb => {
           const itx = idb.transaction("reviews", "readwrite");
-          const store = itx.objectStore("reviews");
-          json.forEach(review => {
-            store.put({id: review.id, "restaurant_id": review["restaurant_id"], data: review});
+          const storeReviews = itx.objectStore("reviews");
+          data.forEach(review => {
+            storeReviews.put({id: review.id, "restaurant_id": review["restaurant_id"], data: review});
           })
-          console.log("sw put reviews in db: ", json);
           return data;
         })
       })
@@ -135,44 +108,44 @@ self.addEventListener('fetch', event => {
   }))
 }
 
+// ===================== HANDLE RESTAURANTS =======================
+
   const handleRestaurantEvent = (event, id) => {
     // Check IndexedDB for JSON, return if available; 
     event.respondWith(dbPromise.then(db => {
       console.log("sw got dbPromise-restaurants");
       //create a transaction and pass objectStore(s)
-      let tx = db.transaction("restaurants"); //transaction is a property
+      let tx = db.transaction("restaurants");
       // call objectStore and pass the name of the objectStore
       let store = tx.objectStore("restaurants");
       return store.get(id); //('id')?
     }).then(data => {
       //next 3 lines ~ by Doug Brown ~
-        return ( (data && data.data) || fetch(event.request)
+        return (data && data.data) || fetch(event.request)
           .then(fetchResponse => fetchResponse.json())
           .then(json => {
             console.log("sw got restaurants json");
             //save the JSON data to the IDB
             return dbPromise.then(db => {
-              let tx = db.transaction("restaurants", "readwrite");
-              let store = tx.objectStore('restaurants').put({
+              const tx = db.transaction("restaurants", "readwrite");
+              const store = tx.objectStore('restaurants').put({
                 id: id,
                 data: json
               });
-              console.log("sw put data in db: ", json);
+              console.log("sw put restaurant data in db: ", json);
               return json;
             }); // dbPromise.then(db => {
-          }) // .then(json => {
-        ); // return ( (data && ...
-      }) //fulfills then(data => {... })
-    // next 6 lines by Doug Brown
-      .then(finalresponse => {
+          }); // .then(json => {
+            // next 6 lines by Doug Brown
+      }).then(finalresponse => {
         return new Response (JSON.stringify(finalResponse));
       })
       .catch(error => {
         return new Response("Error fetching data: ", { status: 500 });
-      })
-    ) //fulfill Promise : event.respondWith(dbPromise.then(db => {
-  } // end
+      })); //fulfill Promise : event.respondWith(dbPromise.then(db => {
+  }; // end
 
+// ===================== HANDLE CACHE REQUESTS =======================
     function handleRequest(event, requestCache) {
     // Check for previously cached html-if available, return;
     // If not available, fetch, cache & return the request
