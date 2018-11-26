@@ -4,7 +4,7 @@ import './register';
 //set text for faved, set button style
   function getTitle(restaurant) {
     let title;
-    if (restaurant.is_favorite == 'true'){
+    if (restaurant.is_favorite == 'true' || ('aria-pressed') == 'true'){
       title = ` ${restaurant.name} is a favorite!`;
     } else {
       title =` Click to Favorite`;
@@ -12,9 +12,7 @@ import './register';
     return title;
   }
 
-// ~ following code by Alexandro Perez
-
-function handleClick() {
+  function handleClick() {
   const restaurantId = this.dataset.id;
   const fav = this.getAttribute('aria-pressed') == 'true';
   const url = `${DBHelper.API_URL}/restaurants/${restaurantId}/?is_favorite=${!fav}`;
@@ -28,19 +26,18 @@ function handleClick() {
   }).then(updatedRestaurant => {
     // update restaurant on idb
     DBHelper.updateFavorite(updatedRestaurant, true);
-    // change state of toggle button
-    this.setAttribute('aria-pressed', !fav);
   });
 }
 
+  // ~ following code by Alexandro Perez
 export default function favoriteButton(restaurant) {
   const button = document.createElement('button');
   button.innerHTML = "&#x2764;"; // this is the heart symbol in hex code
   button.className = "fav"; // you can use this class name to style your button
-  button.dataset.id = restaurant.id; // store restaurant id in dataset for later
+  button.dataset.id = restaurant.restaurant_id; // store restaurant id in dataset for later
   button.setAttribute('aria-label', `Mark ${restaurant.name} as a favorite`);
   button.setAttribute('aria-pressed', restaurant.is_favorite);
   button.title = getTitle(restaurant);
-  button.onclick = handleClick;
+  //button.onclick = handleClick;
   return button;
 }

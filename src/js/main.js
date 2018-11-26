@@ -4,9 +4,9 @@ import favoriteButton from './favorite-button';
 
 let restaurants,
   neighborhoods,
-  cuisines
-var newMap
-var markers = []
+  cuisines;
+var newMap;
+var markers = [];
 
 /**
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
@@ -29,7 +29,7 @@ const fetchNeighborhoods = () => {
       fillNeighborhoodsHTML();
     }
   });
-};
+}
 
 /**
  * Set neighborhoods HTML.
@@ -56,7 +56,7 @@ const fetchCuisines = () => {
       fillCuisinesHTML();
     }
   });
-};
+}
 
 /**
  * Set cuisines HTML.
@@ -128,7 +128,6 @@ const resetRestaurants = (restaurants) => {
   // Remove all map markers
   if (self.markers)
     self.markers.forEach(marker => marker.remove());
-  
   self.markers = [];
   self.restaurants = restaurants;
 }
@@ -169,24 +168,36 @@ const createRestaurantHTML = (restaurant) => {
 
   const favoriteDiv = document.createElement('div');
   favoriteDiv.setAttribute('class', 'fav');
-  const favorite = favoriteButton(restaurant);
+  let favorite = favoriteButton(restaurant);
   favoriteDiv.appendChild(favorite);
-  const isfaved = document.createElement('p');
+  let isfaved = document.createElement('p');
   isfaved.innerHTML = favorite.title;
+  
+  favorite.onclick = event => {
+    let fav = favorite.getAttribute('aria-pressed') == 'true';
+    let toggledBtn= getElementById(button.fav);
+    toggledBtn.setAttribute('aria-pressed', !fav);
+    toggledBtn.title = (fav) ? ` ${restaurant.name} is a favorite!`:` Click to Favorite`;
+
+    favoriteDiv.appendChild(toggledBtn);
+
+    let isfaved = getElementById(isfaved);
+    isfaved.innerHTML = toggledBtn.title;
+    /*
+    let updateTitle = getElementById(isfaved);
+    let oldTitle = getElementById(isfaved.innerHTML);
+    let newTitle = favorite.title;
+    updateTitle.replaceChild(isfaved)*/
+
+    favoriteDiv.appendChild(favorite);
+    isfaved.innerHTML = favorite.title;
+    //Block any more clicks on this until the callback
+    //favorite.onclick = null;
+    DBHelper.handleFavoriteClick(restaurant.id, !fav);
+  }
+
   favoriteDiv.appendChild(isfaved);
   li.append(favoriteDiv);
-
-  //set text for faved, set button style
-/*  function setFavMessage(restaurant) {
-    let faved;
-    if (restaurant.is_favorite){
-      faved = ` ${restaurant.name} is a favorite!`;
-      favorite.setAttribute('aria-pressed', 'true');
-    } else {
-      faved =` Click to Favorite`;
-    }
-    return faved;
-  }*/
 
   const name = document.createElement('h2');
   name.innerHTML = restaurant.name;
