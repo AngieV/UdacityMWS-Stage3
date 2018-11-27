@@ -14,11 +14,9 @@ const dbPromise = idb.open("rest_reviews_db", 2, upgradeDb => {
     case 1:
         //createObectstore (method) returns a promise for the database,
         //containing objectStore 'reviews' which uses id as its key
-        {
           const storeReviews = upgradeDb.createObjectStore('reviews', {keyPath: 'id'});
                 storeReviews.createIndex("restaurant", "restaurant_id");
                 //storeReviews.createIndex("restaurant_id", "restaurant_id");
-        }
     /*case 2:
       const pending = upgradeDB.createObjectStore("pending", {
         keyPath: "id",

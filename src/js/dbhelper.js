@@ -254,7 +254,7 @@ export default class DBHelper {
   static handleFavoriteClick(id, newState) {
         // Block any more clicks on this until the callback
     const fav = document.getElementById("favorite" + id);
-    favorite.onclick = null;
+    this.onclick = null;
 
     DBHelper.updateFavorite(id, newState, (error, resultObj) => {
       if (error) {
@@ -280,9 +280,6 @@ export default class DBHelper {
           console.log("Error updating favorite");
           return;
       }
-      // Update the button title for the specified favorite
-      const isfaved = newState == "true"; 
-      favorite.title = isfaved ? ` ${restaurant.name} is a favorite!` : " Click to Favorite";
     });
   });
 }*/
@@ -304,10 +301,6 @@ export default class DBHelper {
       return Promise.reject("Couldn't mark restaurant as favorite.");
     return response.json();
   }).then(restaurantId => {
-
-  // change state of toggle button
-    this.title = fav ? " Click to Favorite" : ` ${restaurant.name} is a favorite!`;
-    this.setAttribute('aria-pressed', !fav);
 
     // Update the favorite data on the selected ID in the cached data
     callback(null, {id, value: fav})

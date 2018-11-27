@@ -165,39 +165,55 @@ const createRestaurantHTML = (restaurant) => {
   li.append(image);
 
   //create div and add button
-
   const favoriteDiv = document.createElement('div');
   favoriteDiv.setAttribute('class', 'fav');
   let favorite = favoriteButton(restaurant);
+  favorite.setAttribute('id', 'favBtn');
   favoriteDiv.appendChild(favorite);
   let isfaved = document.createElement('p');
   isfaved.innerHTML = favorite.title;
-  
-  favorite.onclick = event => {
-    let fav = favorite.getAttribute('aria-pressed') == 'true';
-    let toggledBtn= getElementById(button.fav);
-    toggledBtn.setAttribute('aria-pressed', !fav);
-    toggledBtn.title = (fav) ? ` ${restaurant.name} is a favorite!`:` Click to Favorite`;
-
-    favoriteDiv.appendChild(toggledBtn);
-
-    let isfaved = getElementById(isfaved);
-    isfaved.innerHTML = toggledBtn.title;
-    /*
-    let updateTitle = getElementById(isfaved);
-    let oldTitle = getElementById(isfaved.innerHTML);
-    let newTitle = favorite.title;
-    updateTitle.replaceChild(isfaved)*/
-
-    favoriteDiv.appendChild(favorite);
-    isfaved.innerHTML = favorite.title;
-    //Block any more clicks on this until the callback
-    //favorite.onclick = null;
-    DBHelper.handleFavoriteClick(restaurant.id, !fav);
-  }
-
   favoriteDiv.appendChild(isfaved);
   li.append(favoriteDiv);
+  
+  /*const fav = this.getAttribute('aria-pressed') == 'true';
+    let fav = favorite.getAttribute('aria-pressed') == 'true';
+    let toggledBtn= getElementById("favBtn");
+    if(fav) {
+      toggledBtn.classList.toggle(".fav");
+      toggledBtn.title = ` ${restaurant.name} is a favorite!`
+    } else {
+      toggledBtn.classList.toggle(".fav[aria-pressed=true]");
+      toggledBtn.title = ` Click to Favorite`;
+    } 
+     toggledBtn.title = (fav) ? ` ${restaurant.name} is a favorite!`:` Click to Favorite`;
+    */
+
+  favorite.addEventListener('click', (event) => {
+    const newState = !restaurant.is_favorite;
+    DBHelper.handleFavoriteClick(favorite.restaurantId, newState);
+    restaurant.is_favorite = newState;
+
+    toggleFavorite(favorite, newState);
+    });
+
+  function toggleFavorite(el, fav) {
+    if(!fav){
+      el.classList.remove(".fav[aria-pressed=true]");
+      el.classList.add(".fav");
+      el.setAttribute('aria-label', 'click to favorite');
+      el.title = ` Click to Favorite`;
+    } else {
+      el.classList.remove(".fav");
+      el.classList.add(".fav[aria-pressed=true]");
+      el.setAttribute('aria-label', ' Add as favorite');
+      el.title = ` ${restaurant.name} is a favorite!`;
+    }
+    favorite = getElementById("favBtn");
+    favorite = el;
+    //let oldBtn = document.getElementById("favBtn");
+    // favoriteDiv.replaceChild(el, oldBtn);
+    isfaved.innerHTML = el.title;
+  }
 
   const name = document.createElement('h2');
   name.innerHTML = restaurant.name;
