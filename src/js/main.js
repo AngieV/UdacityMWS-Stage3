@@ -177,21 +177,16 @@ const createRestaurantHTML = (restaurant) => {
   
   /*const fav = this.getAttribute('aria-pressed') == 'true';
     let fav = favorite.getAttribute('aria-pressed') == 'true';
-    let toggledBtn= getElementById("favBtn");
     if(fav) {
       toggledBtn.classList.toggle(".fav");
-      toggledBtn.title = ` ${restaurant.name} is a favorite!`
-    } else {
       toggledBtn.classList.toggle(".fav[aria-pressed=true]");
-      toggledBtn.title = ` Click to Favorite`;
-    } 
-     toggledBtn.title = (fav) ? ` ${restaurant.name} is a favorite!`:` Click to Favorite`;
+    // toggledBtn.title = (fav) ? ` ${restaurant.name} is a favorite!`:` Click to Favorite`;
     */
 
   favorite.addEventListener('click', (event) => {
     const newState = !restaurant.is_favorite;
-    DBHelper.handleFavoriteClick(favorite.restaurantId, newState);
-    restaurant.is_favorite = newState;
+    DBHelper.handleFavoriteClick(restaurant, restaurant.is_favorite = newState);
+    //restaurant.is_favorite = newState;
 
     toggleFavorite(favorite, newState);
     });
@@ -205,13 +200,10 @@ const createRestaurantHTML = (restaurant) => {
     } else {
       el.classList.remove(".fav");
       el.classList.add(".fav[aria-pressed=true]");
-      el.setAttribute('aria-label', ' Add as favorite');
+      el.setAttribute('aria-label', `Mark ${restaurant.name} as a favorite`);
       el.title = ` ${restaurant.name} is a favorite!`;
     }
-    favorite = getElementById("favBtn");
     favorite = el;
-    //let oldBtn = document.getElementById("favBtn");
-    // favoriteDiv.replaceChild(el, oldBtn);
     isfaved.innerHTML = el.title;
   }
 

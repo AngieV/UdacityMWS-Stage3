@@ -250,12 +250,13 @@ export default class DBHelper {
     return marker;
   }
 
- // ~ following code by Doug Brown
-  static handleFavoriteClick(id, newState) {
-        // Block any more clicks on this until the callback
-    const fav = document.getElementById("favorite" + id);
-    this.onclick = null;
+ // remaining dbhelper code by Doug Brown from walkthrough
 
+  static handleFavoriteClick(id, newState) {
+    // Block any more clicks on this until the callback
+    //const fav = document.getElementById("favorite" + id);
+    this.onclick = null;
+    console.log( `Preparing to update ${newState} for ${id}`);
     DBHelper.updateFavorite(id, newState, (error, resultObj) => {
       if (error) {
         console.log("Error updating favorite");
@@ -287,43 +288,32 @@ export default class DBHelper {
   static updateFavorite(id, newState, callback) {
     // Push the request into the waiting queue in IDB
     const url = `${DBHelper.DATABASE_URL}/${id}/?is_favorite=${newState}`;
-    const method = "PUT";
+    const PUT = {method: 'PUT'};
     DBHelper.updateCachedRestaurantData(id, {"is_favorite": newState});
-    DBHelper.addPendingRequestToQueue(url, method);
+    DBHelper.addPendingRequestToQueue(url, PUT);
     // Update the favorite data in restaurant cache
     callback(null, {id, value: newState});
   }
 
-  /*static updateFavorite(id, callback){
-
-    return fetch(url, PUT).then(response => {
-    if (!response.ok) 
-      return Promise.reject("Couldn't mark restaurant as favorite.");
-    return response.json();
-  }).then(restaurantId => {
-
-    // Update the favorite data on the selected ID in the cached data
-    callback(null, {id, value: fav})
-  }
-*/
-
   static updateCachedRestaurantData(id, updateObj) {
-    // Update in the data for all restaurants first
+    // Update data for all restaurants first
     dbPromise.then(db => {
-      console.log("Getting db transaction");
+      console.log( `Preparing to update ${updateObj} for ${id}`);
       const tx = db.transaction("restaurants", "readwrite");
-      const value = tx.objectStore("restaurants")
-        .get("-1").then(value => {
+      const value = tx.objectStore("restaurants").get("-1").then(value => {
           if (!value) {
-            console.log("No cached data found");
+            console.log("No cached restaurant data found");
             return;
           }
           const data = value.data;
           const restaurantArr = data.filter(r => r.id === id);
           const restaurantObj = restaurantArr[0];
           // Update restaurantObj with updateObj details
-          if (!restaurantObj)
+          if (!restaurantObj){
+            console.log(`unable to update cached restaurant data `);
             return;
+          }
+            
           const keys = Object.keys(updateObj);
           keys.forEach(k => {
             restaurantObj[k] = updateObj[k];
@@ -334,6 +324,7 @@ export default class DBHelper {
             const tx = db.transaction("restaurants", "readwrite");
             tx.objectStore("restaurants")
               .put({id: "-1", data: data});
+              console.log(`updated ${updateObj} data in idb`)
             return tx.complete;
           })
         })
@@ -343,12 +334,10 @@ export default class DBHelper {
     dbPromise.then(db => {
       console.log("Getting db transaction");
       const tx = db.transaction("restaurants", "readwrite");
-      const value = tx
-        .objectStore("restaurants")
-        .get(id + "")
+      const value = tx.objectStore("restaurants").get(id + "")
         .then(value => {
           if (!value) {
-            console.log("No cached data found");
+            console.log("No cached specific data found");
             return;
           }
           const restaurantObj = value.data;
@@ -369,6 +358,7 @@ export default class DBHelper {
                 id: id + "",
                 data: restaurantObj
               });
+              console.log(`Updated ${id} ${updateObj} in idb`)
             return tx.complete;
           })
         })
@@ -402,6 +392,7 @@ export default class DBHelper {
     // Push the request into the waiting queue in IDB
     const url = `${DBHelper.API_URL}/reviews/` + id;
     const method = "POST";
+    console.log(`Adding ${bodyObj} to IDB queue`) 
     DBHelper.updateCachedRestaurantReview(id, bodyObj);
     DBHelper.addPendingRequestToQueue(url, method, bodyObj);
     callback(null, null);
