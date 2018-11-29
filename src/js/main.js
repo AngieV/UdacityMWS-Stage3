@@ -166,6 +166,77 @@ const createRestaurantHTML = (restaurant) => {
 
   //create div and add button
   const favoriteDiv = document.createElement('div');
+  favoriteDiv.className = 'fav';
+  let favorite = favoriteButton(restaurant);
+  favorite.id = `fav-${restaurant.id}`; // move this to favorte-button.js?
+  favoriteDiv.appendChild(favorite);
+  let isfaved = document.createElement('p');
+  isfaved.innerHTML = favorite.title;
+  favoriteDiv.appendChild(isfaved);
+  li.append(favoriteDiv);
+  
+  favorite.addEventListener('click', (event) => {
+    const newState = !restaurant.is_favorite;
+    toggleFavorite(favorite, newState);
+    });
+  
+  function toggleFavorite() {
+    if (restaurant.is_favorite === true) {
+      favorite.title = ` Click to Favorite`;
+    } else {
+      favorite.title = ` ${restaurant.name} is a favorite!`;
+    }
+    isfaved.innerHTML = favorite.title;
+  }
+  
+  //function makeFavorite(url, newState) => {
+    //newState = 'is_favorite': true
+  //}
+  
+  //github.com/kristof042
+  
+  function notFavorite() {
+    'is_favorite': false
+  }
+  
+    function makeFavorite() {
+    putFetch(currentURL, {
+      'is_favorite': true
+    })
+  }
+
+  function unFavorite() {
+    putFetch(currentURL, {
+      'is_favorite': false
+    })
+  }
+  
+  const putFetch = (url, data, method) => fetch(
+  url,
+  {
+    method: 'PUT',
+    body: JSON.stringify(data),
+    headers: {
+      'content-type': 'application/json'
+    }
+  }
+).then(res => {
+  res.json
+}).catch(err => console.log(err))
+
+const postFetch = (url, data) => fetch(
+  url,
+  {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: {
+      'content-type': 'application/json'
+    }
+  }
+).then(res => res.json).catch(err => console.log(err))
+  
+  /*
+  const favoriteDiv = document.createElement('div');
   favoriteDiv.setAttribute('class', 'fav');
   let favorite = favoriteButton(restaurant);
   favorite.setAttribute('id', 'favBtn');
@@ -182,7 +253,7 @@ const createRestaurantHTML = (restaurant) => {
       toggledBtn.classList.toggle(".fav[aria-pressed=true]");
     // toggledBtn.title = (fav) ? ` ${restaurant.name} is a favorite!`:` Click to Favorite`;
     */
-
+/*
   favorite.addEventListener('click', (event) => {
     const newState = !restaurant.is_favorite;
     DBHelper.handleFavoriteClick(restaurant, restaurant.is_favorite = newState);
@@ -205,7 +276,7 @@ const createRestaurantHTML = (restaurant) => {
     }
     favorite = el;
     isfaved.innerHTML = el.title;
-  }
+  }*/
 
   const name = document.createElement('h2');
   name.innerHTML = restaurant.name;
