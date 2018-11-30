@@ -56,20 +56,6 @@ export default class DBHelper {
   }
 
   /**
-   * Get a restaurant, by its id, or all stored restaurants in idb using promises.
-   * If no argument is passed, all restaurants will returned.
-   */
-/*   static getRestaurants(id = undefined) {
-    return this.db.then(db => {
-      const store = db.transaction('restaurants').objectStore('restaurants');
-      if (id){
-       return store.get(Number(id));
-      }
-      return store.getAll();
-    });
-  }*/
-
-  /**
    * Fetch a restaurant by its ID.
    */
   static fetchRestaurantById(id, callback) {
@@ -86,27 +72,6 @@ export default class DBHelper {
       }
     });
   }
-  // lines following by Alexandro Perez
-  /*static fetchRestaurantById(id, callback) {
-    fetch(`${DBHelper.API_URL}/restaurants/${id}`)
-      .then(response => {
-      if (!response.ok) 
-        return Promise.reject("Restaurant couldn't be fetched from network");
-      return response.json();
-    }).then(fetchedRestaurant => {
-      // if restaurant could be fetched from network:
-      //DBHelper.putRestaurants(fetchedRestaurant);
-      return callback(null, fetchedRestaurant);
-    }).catch(networkError => {
-      // if restaurant couldn't be fetched from network:
-      console.log(`${networkError}, trying idb.`);
-      DBHelper.getRestaurants(id).then(idbRestaurant => {
-        if (!idbRestaurant) 
-          return callback("Restaurant not found in idb either", null);
-        return callback(null, idbRestaurant);
-      });
-    });
-  }*/
 
   static fetchReviewsByRestaurantId(id, callback){
     fetch(`${DBHelper.API_URL}/reviews/?restaurant_id=${id}`, {method: "GET"})
@@ -250,13 +215,15 @@ export default class DBHelper {
     return marker;
   }
 
- // remaining dbhelper code by Doug Brown from walkthrough
+
+ // most of remaining dbhelper code by Doug Brown from walkthrough
 
   static handleFavoriteClick(id, newState) {
     // Block any more clicks on this until the callback
     //const fav = document.getElementById("favorite" + id);
-    this.onclick = null;
-    console.log( `Preparing to update ${newState} for ${id}`);
+    //this.onclick = null;
+    console.log( `Preparing to update idb: ${newState} for ${id}`);
+
     DBHelper.updateFavorite(id, newState, (error, resultObj) => {
       if (error) {
         console.log("Error updating favorite");
@@ -265,32 +232,14 @@ export default class DBHelper {
     });
   }
 
-    /*const restaurant = self.restaurants.filter(r => r.id === id)[0];
-    if (!restaurant)
-      return;
-    const url = `${DBHelper.DATABASE_URL}/${id}/?is_favorite=${newState}`;
-    const PUT = {method: 'PUT'};
-
-    return fetch(url, PUT).then(response => {
-      if (!response.ok) 
-        return Promise.reject("Couldn't mark restaurant as favorite.");
-      return response.json();
-    }).then(restaurantId => {
-      DBHelper.updateFavorite(id, newState, (error, resultObj) => {
-        if (error) {
-          console.log("Error updating favorite");
-          return;
-      }
-    });
-  });
-}*/
-
   static updateFavorite(id, newState, callback) {
     // Push the request into the waiting queue in IDB
     const url = `${DBHelper.DATABASE_URL}/${id}/?is_favorite=${newState}`;
     const PUT = {method: 'PUT'};
+    // // Only use caching for GET events
     DBHelper.updateCachedRestaurantData(id, {"is_favorite": newState});
     DBHelper.addPendingRequestToQueue(url, PUT);
+
     // Update the favorite data in restaurant cache
     callback(null, {id, value: newState});
   }
@@ -310,7 +259,7 @@ export default class DBHelper {
           const restaurantObj = restaurantArr[0];
           // Update restaurantObj with updateObj details
           if (!restaurantObj){
-            console.log(`unable to update cached restaurant data `);
+            console.log(`unable to update restaurant w/${updateObj} details `);
             return;
           }
             
@@ -365,9 +314,9 @@ export default class DBHelper {
     })
   }
 
-  static saveReview(id, name, rating, comment, callback) {
+  /*static saveReview(id, review, callback) {
     // Block any more clicks on the submit button until the callback
-    const btn = document.getElementById("btnSaveReview");
+    const btn = document.getElementById("addReview");
     btn.onclick = null;
 
     // Create the POST body
@@ -375,7 +324,7 @@ export default class DBHelper {
       restaurant_id: id,
       name: name,
       rating: rating,
-      comments: comment,
+      comments: comments,
       createdAt: Date.now()
     }
 
@@ -386,6 +335,12 @@ export default class DBHelper {
       }
       callback(null, result);
     })
+  }*/
+  /*static putReview(id, bodyObj, callback) {
+    // Push the request into the waiting queue in IDB
+    const url = `${DBHelper.API_URL}/reviews/` + id;
+    const PUT = {method: 'PUT'};
+    fetch(url, PUT);
   }
 
   static saveNewReview(id, bodyObj, callback) {
@@ -396,7 +351,7 @@ export default class DBHelper {
     DBHelper.updateCachedRestaurantReview(id, bodyObj);
     DBHelper.addPendingRequestToQueue(url, method, bodyObj);
     callback(null, null);
-  }
+  } */
 
   static updateCachedRestaurantReview(id, bodyObj) {
     console.log("updating cache for new review: ", bodyObj);
@@ -416,8 +371,8 @@ export default class DBHelper {
   }
 
   static addPendingRequestToQueue(url, method, body) {
-    // Open the database ad add the request details to the pending table
-    const dbPromise = idb.open("rest_reviews_db");
+    // Open the database and add the request details to the pending table
+    //const dbPromise = idb.open("rest_reviews_db");
     dbPromise.then(db => {
       const tx = db.transaction("pending", "readwrite");
       tx.objectStore("pending")
@@ -451,8 +406,7 @@ export default class DBHelper {
       }
 
       const tx = db.transaction("pending", "readwrite");
-      tx
-        .objectStore("pending")
+      tx.objectStore("pending")
         .openCursor()
         .then(cursor => {
           if (!cursor) {
@@ -466,9 +420,7 @@ export default class DBHelper {
           // If we don't have a parameter then we're on a bad record that should be tossed
           // and then move on
           if ((!url || !method) || (method === "POST" && !body)) {
-            cursor
-              .delete()
-              .then(callback());
+            cursor.delete().then(callback());
             return;
           };
 

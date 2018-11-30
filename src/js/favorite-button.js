@@ -1,6 +1,7 @@
 import DBHelper from "./dbhelper";
 import './register';
 
+
 //set text for faved, set button style
   function getTitle(restaurant) {
     let title;
@@ -12,36 +13,29 @@ import './register';
     return title;
   }
 
+// ~ following code by Alexandro Perez
+
   function handleClick() {
-/*  const restaurantId = this.dataset.id;
+  const restaurant_id = this.dataset.id;
   const fav = this.getAttribute('aria-pressed') == 'true';
-  const url = `${DBHelper.API_URL}/restaurants/${restaurantId}/?is_favorite=${!fav}`;
+  const url = `${DBHelper.DATABASE_URL}/restaurant/?is_favorite=${!fav}`;
   const PUT = {method: 'PUT'};
 
-  // TODO: use Background Sync to sync data with API server
+  this.onclick = null;
+  console.log( `Preparing to update idb: is_favorite for ${restaurant}`);
+
+  // use Background Sync to sync data with API server ??
+  // Update the idb
   return fetch(url, PUT).then(response => {
     if (!response.ok) 
-      return Promise.reject("We couldn't mark restaurant as favorite.");
+      return Promise.reject("Couldn't change favorite status.");
     return response.json();
   }).then(updatedRestaurant => {
     // update restaurant on idb
-    DBHelper.updateFavorite(updatedRestaurant, true);
+   DBHelper.updateFavorite(updatedRestaurant, !fav);
   });
-}*/
-    //const fav = this.getAttribute('aria-pressed') == 'true';
-    let fav = this.getAttribute('aria-pressed') == 'true';
-    let toggledBtn= getElementById("favBtn");
-    if(fav) {
-      toggledBtn.classList.toggle(".fav");
-      toggledBtn.title = ` ${restaurant.name} is a favorite!`
-    } else {
-      toggledBtn.classList.toggle(".fav[aria-pressed=true]");
-      toggledBtn.title = ` Click to Favorite`;
-    } 
-  }
+}
 
-
-  // ~ following code by Alexandro Perez
 export default function favoriteButton(restaurant) {
   const button = document.createElement('button');
   button.innerHTML = "&#x2764;"; // this is the heart symbol in hex code

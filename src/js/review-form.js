@@ -1,8 +1,6 @@
 import DBHelper from "./dbhelper";
 import './register';
 
-// ~ code by Alexandro Perez
-
 /**
  * Returns a li element with review data so it can be appended to 
  * the review list.
@@ -11,14 +9,18 @@ function createReviewHTML(review) {
   const li = document.createElement('li');
   const name = document.createElement('p');
   name.innerHTML = review.name;
+  name.setAttribute('class', 'name')
   li.appendChild(name);
 
   const date = document.createElement('p');
+  //insert Date and convert timestamp into readable format
   date.innerHTML = new Date(review.createdAt).toLocaleDateString();
+  date.setAttribute('class','date');
   li.appendChild(date);
 
   const rating = document.createElement('p');
   rating.innerHTML = `Rating: ${review.rating}`;
+  rating.setAttribute('class','rating');
   li.appendChild(rating);
 
   const comments = document.createElement('p');
@@ -27,6 +29,8 @@ function createReviewHTML(review) {
 
   return li;
 }
+
+// ~ code by Alexandro Perez
 
 /**
  * Clear form data
@@ -89,24 +93,28 @@ function handleSubmit(e) {
   if (!review) return;
 
   console.log(review);
-
-  const url = `${DBHelper.API_URL}/reviews/`;
+  const url = `${DBHelper.API_URL}/reviews/` + this.dataset.restaurantId;
+  //const url = `${DBHelper.API_URL}/reviews/`;
   const POST = {
     method: 'POST',
     body: JSON.stringify(review)
   };
 
-  // TODO: use Background Sync to sync data with API server
+  // use Background Sync to sync data with API server ???
   return fetch(url, POST).then(response => {
+    console.log('Adding review to the API server')
     if (!response.ok) return Promise.reject("We couldn't post review to server.");
     return response.json();
   }).then(newNetworkReview => {
     // save new review on idb
-    dbPromise.putReviews(newNetworkReview);
+    console.log(`Adding ${newNetworkReview} to IDB queue`);
+    DBHelper.updateCachedRestaurantReview(this.dataset.restaurantId, {newNetworkReview});
+    DBHelper.addPendingRequestToQueue(url, POST, {newNetworkReview});
+    //dbPromise.putReviews(newNetworkReview);
     // post new review on page
-    const reviewList = document.getElementById('reviews-list');
-    const review = createReviewHTML(newNetworkReview);
-    reviewList.appendChild(review);
+    const ul = document.getElementById('reviews-list');
+    //const review = createReviewHTML(newNetworkReview);
+    ul.appendChild(createReviewHTML(newNetworkReview));
     // clear form
     clearForm();
   });

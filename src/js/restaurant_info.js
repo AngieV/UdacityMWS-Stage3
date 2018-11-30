@@ -2,19 +2,15 @@ import DBHelper from './dbhelper';
 import './register';
 import favoriteButton from './favorite-button';
 import reviewForm from './review-form';
-
-
-let restaurant;
+ let restaurant;
 var newMap;
-
-/**
+ /**
  * Initialize map as soon as the page is loaded.
  */
 document.addEventListener('DOMContentLoaded', (event) => {
   initMap();
 });
-
-/**
+ /**
  * Initialize leaflet map
  */
 const initMap = () => {
@@ -40,8 +36,7 @@ const initMap = () => {
     }
   });
 }
-
-/**
+ /**
  * Get current restaurant from page URL.
  */
 const fetchRestaurantFromURL = (callback) => {
@@ -66,18 +61,15 @@ const fetchRestaurantFromURL = (callback) => {
     });
   }
 };
-
-/**
+ /**
  * Create restaurant HTML and add it to the webpage
  */
 const fillRestaurantHTML = (restaurant = self.restaurant) => {
   const div = document.getElementById('maincontent');
   const name = document.getElementById('restaurant-name');
   name.innerHTML = restaurant.name;
-
   const address = document.getElementById('restaurant-address');
   address.innerHTML = restaurant.address;
-
   const image = document.getElementById('restaurant-img');
   const imageUrl = DBHelper.imageUrlForRestaurant(restaurant);
   image.className = 'restaurant-img';
@@ -89,81 +81,94 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
     image.sizes = `90%vw, 300px`;
     image.alt = `A photo of ${restaurant.name} restaurant with cuisine type ${restaurant.cuisine_type}`;
   };
-
-  const cuisine = document.getElementById('restaurant-cuisine');
+   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.innerHTML = restaurant.cuisine_type;
-
-  // fill operating hours
+   // fill operating hours
   if (restaurant.operating_hours) {
     fillRestaurantHoursHTML();
   }
-
-  //create div and add button
-  const ReviewsDiv = document.getElementById('reviews-container');
+   //create favorite div and add button
+  const reviewsDiv = document.getElementById('reviews-container');
   const favoriteDiv = document.createElement('div');
   favoriteDiv.setAttribute('class', 'fav');
-  const favorite = favoriteButton(restaurant);
-
+  let favorite = favoriteButton(restaurant);
+  favorite.id = `fav-${restaurant.id}`;
   favoriteDiv.appendChild(favorite);
-  const isfaved = document.createElement('p');
+  let isfaved = document.createElement('p');
   isfaved.innerHTML = favorite.title;
   favoriteDiv.appendChild(isfaved);
-  ReviewsDiv.append(favoriteDiv);
 
+  const newState = (restaurant["is_favorite"] === true) ? false : true;
+  
+  favorite.addEventListener('click', (event) => {
+    console.log(`restaurant ${restaurant} is favorite= ${restaurant["is_favorite"]}, newState = ${newState}` );
+    toggleFavorite(favorite, restaurant, newState);
+    });
+  
+  function toggleFavorite(btn, restaurant, newState) {
+    if (newState === true) {
+      btn.title = ` ${restaurant.name} is a favorite!`;
+      btn.setAttribute('aria-label', `Mark ${restaurant.name} as a favorite`);
+      btn.classList.remove(".fav");
+      btn.classList.add(".fav[aria-pressed=true]");
+    } else {
+      btn.title = ` Click to Favorite`;
+      btn.setAttribute('aria-label', `Unmark ${restaurant.name} as a favorite`);
+      btn.classList.remove(".fav[aria-pressed=true]");
+      btn.classList.add(".fav");
+    }
+    isfaved.innerHTML = favorite.title;
+    // fetch PUT newstate
+    DBHelper.handleFavoriteClick(restaurant.id, newState);
+  }
+
+  reviewsDiv.append(favoriteDiv);
   // fill reviews for stage 2 server
   // fillReviewsHTML();
   // fill reviews for stage 3 server
   DBHelper.fetchReviewsByRestaurantId(restaurant.id, fillReviewsHTML);
 }
-
-/**
+ /**
  * Create restaurant operating hours HTML table and add it to the webpage.
  */
 const fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => {
   const hours = document.getElementById('restaurant-hours');
   for (let key in operatingHours) {
     const row = document.createElement('tr');
-
-    const day = document.createElement('td');
+     const day = document.createElement('td');
     day.innerHTML = key;
     day.setAttribute('class', 'day');
     row.appendChild(day);
-
     const time = document.createElement('td');
     time.innerHTML = operatingHours[key];
     time.setAttribute('class', 'time');
     row.appendChild(time);
-
-    hours.appendChild(row);
+     hours.appendChild(row);
   }
 }
-
-/**
+ /**
  * Create all reviews HTML and add them to the webpage.
  */
 const fillReviewsHTML = (error, reviews) => {
   self.restaurant.reviews = reviews;
   if(error){
-      console.log('Error retrieving reviews', error);
+    console.log('Error retrieving reviews', error);
     }
   const container = document.getElementById('reviews-container');
   const title = document.createElement('h2');
   title.innerHTML = 'Reviews';
   container.appendChild(title);
-
   const h4 = document.createElement('h4');
   h4.innerHTML = "Leave a Review";
   container.appendChild(h4);
   const id = getParameterByName('id');
   container.appendChild(reviewForm(id));
-
   if (!reviews) {
     const noReviews = document.createElement('p');
     noReviews.innerHTML = 'No reviews yet!';
     container.appendChild(noReviews);
     return;
   }
-
   const ul = document.getElementById('reviews-list');
   reviews.reverse();
   reviews.forEach(review => {
@@ -171,8 +176,7 @@ const fillReviewsHTML = (error, reviews) => {
   });
   container.appendChild(ul);
 }
-
-/**
+ /**
  * Create review HTML and add it to the webpage.
  */
 const createReviewHTML = (review) => {
@@ -181,26 +185,21 @@ const createReviewHTML = (review) => {
   name.innerHTML = review.name;
   name.setAttribute('class', 'name')
   li.appendChild(name);
-
-  const date = document.createElement('p');
+   const date = document.createElement('p');
   //insert Date and convert timestamp into readable format
   date.innerHTML = new Date(review.createdAt).toLocaleDateString()
   date.setAttribute('class','date');
   li.appendChild(date);
-
-  const rating = document.createElement('p');
+   const rating = document.createElement('p');
   rating.innerHTML = `Rating: ${review.rating}`;
   rating.setAttribute('class','rating');
   li.appendChild(rating);
-
-  const comments = document.createElement('p');
+   const comments = document.createElement('p');
   comments.innerHTML = review.comments;
   li.appendChild(comments);
-
-  return li;
+   return li;
 }
-
-/**
+ /**
  * Add restaurant name to the breadcrumb navigation menu
  */
 const fillBreadcrumb = (restaurant=self.restaurant) => {
@@ -209,8 +208,7 @@ const fillBreadcrumb = (restaurant=self.restaurant) => {
   li.innerHTML = restaurant.name;
   breadcrumb.appendChild(li);
 }
-
-/**
+ /**
  * Get a parameter by name from page URL.
  */
 const getParameterByName = (name, url) => {

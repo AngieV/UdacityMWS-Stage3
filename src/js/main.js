@@ -1,5 +1,6 @@
-import DBHelper from './dbhelper';
+
 import './register';
+import DBHelper from './dbhelper';
 import favoriteButton from './favorite-button';
 
 let restaurants,
@@ -20,7 +21,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 /**
  * Fetch all neighborhoods and set their HTML.
  */
-const fetchNeighborhoods = () => {
+function fetchNeighborhoods() {
   DBHelper.fetchNeighborhoods((error, neighborhoods) => {
     if (error) { // Got an error
       console.error(error);
@@ -34,7 +35,7 @@ const fetchNeighborhoods = () => {
 /**
  * Set neighborhoods HTML.
  */
-const fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
+function fillNeighborhoodsHTML(neighborhoods = self.neighborhoods) {
   const select = document.getElementById('neighborhoods-select');
   neighborhoods.forEach(neighborhood => {
     const option = document.createElement('option');
@@ -47,7 +48,7 @@ const fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
 /**
  * Fetch all cuisines and set their HTML.
  */
-const fetchCuisines = () => {
+function fetchCuisines() {
   DBHelper.fetchCuisines((error, cuisines) => {
     if (error) { // Got an error!
       console.error(error);
@@ -61,7 +62,7 @@ const fetchCuisines = () => {
 /**
  * Set cuisines HTML.
  */
-const fillCuisinesHTML = (cuisines = self.cuisines) => {
+function fillCuisinesHTML(cuisines = self.cuisines) {
   const select = document.getElementById('cuisines-select');
 
   cuisines.forEach(cuisine => {
@@ -96,7 +97,7 @@ const initMap = () => {
 /**
  * Update page and map for current restaurants.
  */
-const updateRestaurants = () => {
+function updateRestaurants() {
   const cSelect = document.getElementById('cuisines-select');
   const nSelect = document.getElementById('neighborhoods-select');
 
@@ -166,45 +167,39 @@ const createRestaurantHTML = (restaurant) => {
 
   //create div and add button
   const favoriteDiv = document.createElement('div');
-  favoriteDiv.setAttribute('class', 'fav');
+  favoriteDiv.className = 'fav';
   let favorite = favoriteButton(restaurant);
-  favorite.setAttribute('id', 'favBtn');
+  favorite.id = `fav-${restaurant.id}`; // move this to favorte-button.js?
   favoriteDiv.appendChild(favorite);
   let isfaved = document.createElement('p');
   isfaved.innerHTML = favorite.title;
   favoriteDiv.appendChild(isfaved);
   li.append(favoriteDiv);
+
   
-  /*const fav = this.getAttribute('aria-pressed') == 'true';
-    let fav = favorite.getAttribute('aria-pressed') == 'true';
-    if(fav) {
-      toggledBtn.classList.toggle(".fav");
-      toggledBtn.classList.toggle(".fav[aria-pressed=true]");
-    // toggledBtn.title = (fav) ? ` ${restaurant.name} is a favorite!`:` Click to Favorite`;
-    */
-
+  const newState = (restaurant["is_favorite"] === true) ? false : true;
+  
   favorite.addEventListener('click', (event) => {
-    const newState = !restaurant.is_favorite;
-    DBHelper.handleFavoriteClick(restaurant, restaurant.is_favorite = newState);
-    //restaurant.is_favorite = newState;
 
-    toggleFavorite(favorite, newState);
+    console.log(`restaurant ${restaurant} is favorite= ${restaurant["is_favorite"]}, newState = ${newState}` );
+    toggleFavorite(favorite, restaurant, newState);
     });
-
-  function toggleFavorite(el, fav) {
-    if(!fav){
-      el.classList.remove(".fav[aria-pressed=true]");
-      el.classList.add(".fav");
-      el.setAttribute('aria-label', 'click to favorite');
-      el.title = ` Click to Favorite`;
+  
+  function toggleFavorite(btn, restaurant, newState) {
+    if (newState === true) {
+      btn.title = ` ${restaurant.name} is a favorite!`;
+      btn.setAttribute('aria-label', `Mark ${restaurant.name} as a favorite`);
+      btn.classList.remove(".fav");
+      btn.classList.add(".fav[aria-pressed=true]");
     } else {
-      el.classList.remove(".fav");
-      el.classList.add(".fav[aria-pressed=true]");
-      el.setAttribute('aria-label', `Mark ${restaurant.name} as a favorite`);
-      el.title = ` ${restaurant.name} is a favorite!`;
+      btn.title = ` Click to Favorite`;
+      btn.setAttribute('aria-label', `Unmark ${restaurant.name} as a favorite`);
+      btn.classList.remove(".fav[aria-pressed=true]");
+      btn.classList.add(".fav");
     }
-    favorite = el;
-    isfaved.innerHTML = el.title;
+    isfaved.innerHTML = favorite.title;
+    // fetch PUT newstate
+    DBHelper.handleFavoriteClick(restaurant.id, newState);
   }
 
   const name = document.createElement('h2');
