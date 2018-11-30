@@ -61,7 +61,7 @@ self.addEventListener('fetch', event => {
       return fetch(event.request)
         .then(fetchResponse => fetchResponse.json())
         .then(json => {
-          return json
+          return json;
         });
     }
     // === DIRECT AJAX RESTAUARANT & REVIEW REQUESTS ===
@@ -89,9 +89,9 @@ const handleReviewsEvent = (event, id) => {
       .then(data => {
         return dbPromise.then(idb => {
           const itx = idb.transaction("reviews", "readwrite");
-          const storeReviews = itx.objectStore("reviews");
+          const store = itx.objectStore("reviews");
           data.forEach(review => {
-            storeReviews.put({id: review.id, "restaurant_id": review["restaurant_id"], data: review});
+            store.put({id: review.id, "restaurant_id": review["restaurant_id"], data: review});
           })
           return data;
         })
