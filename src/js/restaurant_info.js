@@ -98,10 +98,12 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
   isfaved.innerHTML = favorite.title;
   favoriteDiv.appendChild(isfaved);
 
-  const newState = (restaurant["is_favorite"] === true) ? false : true;
+  const isFavorite = (restaurant["is_favorite"] && restaurant["is_favorite"].toString() === "true") ? true : false;
+
+  const newState = !isFavorite;
 
   // fetch PUT newstate
-    DBHelper.handleFavoriteClick(restaurant.id, newState);
+    DBHelper.handleFavoriteClick(restaurant.id, !isFavorite);
   
   favorite.addEventListener('click', (event) => {
     
