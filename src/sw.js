@@ -77,6 +77,10 @@ self.addEventListener('fetch', event => {
 // ===================== HANDLE REVIEWS =======================
 //code by Doug Brown
 const handleReviewsEvent = (event, id) => {
+  if (event.Request.method === "POST" || event.Request.method === "PUT") {
+    return fetch(event.request);
+  };
+  
   event.respondWith(dbPromise.then(db => {
     return db
       .transaction("reviews")
