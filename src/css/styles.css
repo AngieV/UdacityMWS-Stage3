@@ -268,8 +268,8 @@ button.fav {
 	float: left;
 }
 
-button.fav:hover,
-button.fav:focus,
+button.fav[aria-pressed=false]:hover,
+button.fav[aria-pressed=false]:focus,
 button.fav[aria-pressed=true]:hover,
 button.fav[aria-pressed=true]:focus {
 	color: #ffcc99; /* pink */
