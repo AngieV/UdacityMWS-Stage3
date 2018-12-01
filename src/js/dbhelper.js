@@ -1,4 +1,4 @@
-import idb from "idb";
+//import idb from "idb";
 import dbPromise from "./dbPromise";
 
 let fetchedNeighborhoods;
@@ -30,7 +30,7 @@ export default class DBHelper {
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    fetch(`${DBHelper.DATABASE_URL}`)
+    fetch(DBHelper.DATABASE_URL, {method: "GET"})
     .then(response => {
       response.json()
     .then(restaurants => {
@@ -49,7 +49,7 @@ export default class DBHelper {
         callback(null, restaurants);
       });
   }).catch(error => { // Oops!. Got an error from server.
-      if (response.status != 200) {
+      if(response.status != 200) {
         callback (`Request failed. Returned status of ${error.status}.`, null);
       }
     });
@@ -237,29 +237,42 @@ export default class DBHelper {
     const url = `${DBHelper.DATABASE_URL}/${id}/?is_favorite=${newState}`;
     const PUT = {method: 'PUT'};
     // // Only use caching for GET events
-    DBHelper.updateCachedRestaurantData(id, {"is_favorite": newState});
-    DBHelper.addPendingRequestToQueue(url, PUT);
-
+    if(navigator.online){
+      DBHelper.updateCachedRestaurantData(id, {"is_favorite": newState});
+      //DBHelper.addPendingRequestToQueue(url, PUT, {"is_favorite": newState});
+      // use this instead until cursor issue is resolved
+    } else {
+      //add to local storage
+      localStorage.setItem( newState, JSON.stringify(newState));
+      console.log('newState saved to local storage')
+      //when back online, add review to server
+      window.addEventListener("online", function(){
+        DBHelper.updateCachedRestaurantData(id, is_favorite, newState);
+        localStorage.removeItem({"is_favorite": newState});
+        console.log(`added {"is_favorite": newState} to server and idb`)
+      })
+    }
     // Update the favorite data in restaurant cache
     callback(null, {id, value: newState});
   }
 
-  static updateCachedRestaurantData(id, updateObj) {
+  static updateCachedRestaurantData(id, restaurantObj) {
     // Update data for all restaurants first
     dbPromise.then(db => {
-      console.log( `Preparing to update ${updateObj} for ${id}`);
+      console.log( `Preparing to update ${restaurant.is_favorite} for ${id}`);
       const tx = db.transaction("restaurants", "readwrite");
-      const value = tx.objectStore("restaurants").get("-1").then(value => {
-          if (!value) {
+      const value = tx.objectStore("restaurants").get("-1").then(id => {
+          if (!id) {
             console.log("No cached restaurant data found");
             return;
           }
-          const data = value.data;
-          const restaurantArr = data.filter(r => r.id === id);
-          const restaurantObj = restaurantArr[0];
+          put({id: "-1", data: data})
+          //const data = value.data;
+          //const restaurantArr = data.filter(r => r.id === id);
+          //const restaurantObj = restaurantArr[0];
           // Update restaurantObj with updateObj details
           if (!restaurantObj){
-            console.log(`unable to update restaurant w/${updateObj} details `);
+            console.log(`unable to update restaurant w/${is_favorite} details `);
             return;
           }
             
@@ -406,7 +419,8 @@ export default class DBHelper {
       }
 
       const tx = db.transaction("pending", "readwrite");
-      tx.objectStore("pending")
+      tx
+        .objectStore("pending")
         .openCursor()
         .then(cursor => {
           if (!cursor) {
@@ -420,7 +434,9 @@ export default class DBHelper {
           // If we don't have a parameter then we're on a bad record that should be tossed
           // and then move on
           if ((!url || !method) || (method === "POST" && !body)) {
-            cursor.delete().then(callback());
+            cursor
+              .delete()
+              .then(callback());
             return;
           };
 
