@@ -30,7 +30,7 @@ function createReviewHTML(review) {
   return li;
 }
 
-// ~ code by Alexandro Perez
+// ~ code by Alexandro Perez from walkthrough
 
 /**
  * Clear form data
@@ -93,8 +93,9 @@ function handleSubmit(e) {
   if (!review) return;
 
   console.log(review);
-  const url = `${DBHelper.API_URL}/reviews/` + this.dataset.restaurantId;
-  //const url = `${DBHelper.API_URL}/reviews/`;
+
+  //const url = `${DBHelper.API_URL}/reviews/` + this.dataset.restaurantId;
+  const url = `${DBHelper.API_URL}/reviews/`;
   const POST = {
     method: 'POST',
     body: JSON.stringify(review)
@@ -108,14 +109,24 @@ function handleSubmit(e) {
   }).then(newNetworkReview => {
     // save new review on idb
     console.log(`Adding ${newNetworkReview} to IDB queue`);
-    DBHelper.updateCachedRestaurantReview(this.dataset.restaurantId, {newNetworkReview});
-    DBHelper.addPendingRequestToQueue(url, POST, {newNetworkReview});
+    if(navigator.onLine){
+      DBHelper.updateCachedRestaurantReview(this.dataset.restaurantId, {newNetworkReview});
+    //DBHelper.addPendingRequestToQueue(url, POST, {newNetworkReview});
+    } else {
+    // add review to local storage
+    localStorage.setItem('newNetworkReview');
+    console.log('review saved to local storage')
+    //when back online, add review to server
+    window.addEventListener("online", function(){
+      DBHelper.updateCachedRestaurantReview(this.dataset.restaurantId, {newNetworkReview});
+      localStorage.removeItem('newNetworkReview');
+      console.log("server and idb updated w/ review")
+    })
+  }
     //dbPromise.putReviews(newNetworkReview);
     // post new review on page
     const ul = document.getElementById('reviews-list');
-    //const review = createReviewHTML(newNetworkReview);
-    ul.appendChild(createReviewHTML(newNetworkReview));
-    // clear form
+    ul.prepend(createReviewHTML(newNetworkReview));
     clearForm();
   });
 
@@ -131,7 +142,7 @@ export default function reviewForm(restaurantId) {
 
   let p = document.createElement('p');
   const name = document.createElement('input');
-  name.id = "name"
+  name.id = "name";
   name.setAttribute('type', 'text');
   name.setAttribute('aria-label', 'Name');
   name.setAttribute('placeholder', 'Enter Your Name');
