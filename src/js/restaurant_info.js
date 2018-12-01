@@ -105,7 +105,7 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
   // fetch PUT newstate
     DBHelper.handleFavoriteClick(restaurant.id, !isFavorite);
   
-  favorite.addEventListener('click', (event) => {
+/*  favorite.addEventListener('click', (event) => {
     
     console.log(`restaurant ${restaurant} is favorite= ${restaurant["is_favorite"]}, newState = ${newState}` );
     toggleFavorite(favorite, restaurant, newState);
@@ -132,7 +132,7 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
   // fillReviewsHTML();
   // fill reviews for stage 3 server
   DBHelper.fetchReviewsByRestaurantId(restaurant.id, fillReviewsHTML);
-}
+}*/
  /**
  * Create restaurant operating hours HTML table and add it to the webpage.
  */

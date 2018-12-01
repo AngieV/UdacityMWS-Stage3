@@ -167,40 +167,16 @@ const createRestaurantHTML = (restaurant) => {
 
   //create div and add button
   const favoriteDiv = document.createElement('div');
-  favoriteDiv.className = 'fav';
+  favoriteDiv.setAttribute('class', 'fav');
   let favorite = favoriteButton(restaurant);
-  favorite.id = `fav-${restaurant.id}`; // move this to favorte-button.js?
   favoriteDiv.appendChild(favorite);
   let isfaved = document.createElement('p');
   isfaved.innerHTML = favorite.title;
   favoriteDiv.appendChild(isfaved);
   li.append(favoriteDiv);
 
-  
-  const newState = (restaurant["is_favorite"] === true) ? false : true;
-  
-  favorite.addEventListener('click', (event) => {
-
-    console.log(`restaurant ${restaurant} is favorite= ${restaurant["is_favorite"]}, newState = ${newState}` );
-    toggleFavorite(favorite, restaurant, newState);
-    });
-  
-  function toggleFavorite(btn, restaurant, newState) {
-    if (newState === true) {
-      btn.title = ` ${restaurant.name} is a favorite!`;
-      btn.setAttribute('aria-label', `Mark ${restaurant.name} as a favorite`);
-      btn.classList.remove(".fav");
-      btn.classList.add(".fav[aria-pressed=true]");
-    } else {
-      btn.title = ` Click to Favorite`;
-      btn.setAttribute('aria-label', `Unmark ${restaurant.name} as a favorite`);
-      btn.classList.remove(".fav[aria-pressed=true]");
-      btn.classList.add(".fav");
-    }
-    isfaved.innerHTML = favorite.title;
-    // fetch PUT newstate
-    DBHelper.handleFavoriteClick(restaurant.id, newState);
-  }
+  const isFavorite = (restaurant["is_favorite"] && restaurant["is_favorite"].toString() === "true") ? true : false;
+  const newState = !isFavorite;
 
   const name = document.createElement('h2');
   name.innerHTML = restaurant.name;
